@@ -1592,7 +1592,7 @@ function ChatSection({
   return (
     <>
       <div className="bf-page-heading">
-        <h1>Assistant IA</h1>
+        <h1>Benkyō IA</h1>
         <p>Pose une question, demande de l'aide pour organiser ton travail ou comprendre une notion.</p>
       </div>
 
@@ -1609,7 +1609,7 @@ function ChatSection({
         <div className="bf-chat__messages">
           {messages.length === 0 ? (
             <div className="bf-empty">
-              Pose ta première question — par exemple « Aide-moi à organiser ma semaine de révisions »
+              Pose ta question — par exemple « Aide-moi à organiser ma semaine de révisions »
               ou « Explique-moi les fractions ».
             </div>
           ) : (
@@ -1619,7 +1619,7 @@ function ChatSection({
               </div>
             ))
           )}
-          {busy && <div className="bf-chat__bubble assistant bf-chat__typing">L'assistant réfléchit…</div>}
+          {busy && <div className="bf-chat__bubble assistant bf-chat__typing">Je réfléchis…</div>}
         </div>
 
         {error && (
