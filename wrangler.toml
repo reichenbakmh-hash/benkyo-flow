@@ -13,7 +13,7 @@ not_found_handling = "single-page-application"
 #   wrangler d1 create benkyo-flow-db
 #   wrangler d1 execute benkyo-flow-db --file=./schema.sql
 #
-# [[d1_databases]]
-# binding = "DB"
-# database_name = "benkyo-flow-db"
-# database_id = "REMPLACER_PAR_L_ID_GENERE"
+[[d1_databases]]
+binding = "DB"
+database_name = "benkyo-flow-db"
+database_id = "79a9c336-90a9-4992-881d-968b7e33d730"
