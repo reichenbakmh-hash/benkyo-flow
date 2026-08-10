@@ -674,9 +674,6 @@ export default function App() {
             </li>
           ))}
         </ul>
-        <div className="bf-sidebar__footer">
-          <span className="bf-sidebar__footer-text">Benkyō Flow · V1</span>
-        </div>
       </aside>
 
       <div
