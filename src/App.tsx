@@ -2753,7 +2753,7 @@ function ChatSection({
   return (
     <>
       <div className="bf-page-heading">
-        <h1>Assistant IA</h1>
+        <h1>Benkyō IA</h1>
         <p>Pose une question, demande de l'aide pour organiser ton travail ou comprendre une notion.</p>
       </div>
 
@@ -2788,7 +2788,7 @@ function ChatSection({
                   {m.startsGroup && (
                     <div className="bf-chat__row-header">
                       <span className="bf-chat__row-name">
-                        {m.role === "assistant" ? "Assistant IA" : "Toi"}
+                        {m.role === "assistant" ? "Benkyō IA" : "Moi"}
                       </span>
                       <span className="bf-chat__row-time">
                         {new Date(m.createdAt).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
