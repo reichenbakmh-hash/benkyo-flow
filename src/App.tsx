@@ -86,7 +86,7 @@ const SECTIONS: { id: SectionId; label: string; icon: string }[] = [
   { id: "planning", label: "Planning", icon: "🗓️" },
   { id: "progress", label: "Progression", icon: "📊" },
   { id: "history", label: "Historique", icon: "🕒" },
-  { id: "assistant", label: "Assistant IA", icon: "💬" },
+  { id: "assistant", label: "Benkyō IA", icon: "💬" },
   { id: "settings", label: "Paramètres", icon: "⚙️" },
 ];
 
@@ -2529,7 +2529,7 @@ function ChatSection({
   return (
     <>
       <div className="bf-page-heading">
-        <h1>Assistant IA</h1>
+        <h1>Partenaire</h1>
         <p>Pose une question, demande de l'aide pour organiser ton travail ou comprendre une notion.</p>
       </div>
 
@@ -2564,7 +2564,7 @@ function ChatSection({
                   {m.startsGroup && (
                     <div className="bf-chat__row-header">
                       <span className="bf-chat__row-name">
-                        {m.role === "assistant" ? "Assistant IA" : "Toi"}
+                        {m.role === "assistant" ? "Benkyō IA" : "Moi"}
                       </span>
                       <span className="bf-chat__row-time">
                         {new Date(m.createdAt).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
@@ -2581,7 +2581,7 @@ function ChatSection({
               <div className="bf-chat__avatar assistant">🤖</div>
               <div className="bf-chat__row-body">
                 <div className="bf-chat__row-header">
-                  <span className="bf-chat__row-name">Assistant IA</span>
+                  <span className="bf-chat__row-name">Benkyō IA</span>
                 </div>
                 <div className="bf-chat__bubble bf-chat__typing">
                   <span className="bf-chat__dot" />
