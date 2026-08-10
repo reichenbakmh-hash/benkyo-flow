@@ -721,7 +721,7 @@ export default function App() {
             </div>
             <button className="bf-logout" onClick={handleLogout} aria-label="Déconnexion">
               <span className="bf-btn-label">Déconnexion</span>
-              <span className="bf-logout__icon">⏻</span>
+              <span className="bf-logout__icon">🌐</span>
             </button>
           </div>
         </div>
