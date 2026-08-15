@@ -209,7 +209,6 @@ function daysUntil(iso: string | null): number | null {
   return Math.round((target - today.getTime()) / (1000 * 60 * 60 * 24));
 }
 
-// Vrai si la date (YYYY-MM-DD) tombe dans les `days` derniers jours (bornes incluses).
 function isWithinDays(iso: string, days: number): boolean {
   const target = new Date(iso + "T00:00:00").getTime();
   if (Number.isNaN(target)) return false;
@@ -219,7 +218,6 @@ function isWithinDays(iso: string, days: number): boolean {
   return diffDays >= 0 && diffDays < days;
 }
 
-// Renvoie la date du jour et celle d'il y a `daysAgo` jours, au format YYYY-MM-DD.
 function isoDateDaysAgo(daysAgo: number): string {
   const d = new Date();
   d.setHours(0, 0, 0, 0);
@@ -243,10 +241,6 @@ const NOTION_STATUS_ICON: Record<NotionStatus, LucideIcon> = {
   maitrisee: Trophy,
 };
 
-// Registre d'icônes pour les matières : l'utilisateur choisit un pictogramme
-// parmi un jeu fixe (clé stable, ex. "calculator") plutôt qu'un emoji libre.
-// Repli propre sur BookOpen si la clé est inconnue — notamment pour les
-// matières créées avant ce changement, dont l'icône était un emoji.
 const SUBJECT_ICONS: Record<string, LucideIcon> = {
   "book-open": BookOpen,
   calculator: Calculator,
@@ -292,8 +286,6 @@ function SubjectIcon({ iconKey, size = 17 }: { iconKey: string; size?: number })
   return <Icon size={size} strokeWidth={2.2} />;
 }
 
-// Icônes des catégories de méthodes (methods.ts ne stocke qu'une clé texte,
-// framework-agnostique — le mapping vers un composant vit ici).
 const CATEGORY_ICON_MAP: Record<string, LucideIcon> = {
   brain: Brain,
   lightbulb: Wand2,
@@ -312,10 +304,7 @@ function subjectById(subjects: Subject[], id: string | null): Subject | undefine
   if (!id) return undefined;
   return subjects.find((s) => s.id === id);
 }
-
-// Recherche tolérante par nom (utilisée pour résoudre les actions proposées
-// par l'IA, qui ne connaît que des noms lisibles, jamais d'identifiants).
-// Essaie d'abord une correspondance exacte, puis une correspondance partielle.
+ 
 function findByName<T>(items: T[], getName: (item: T) => string, query: unknown): T | undefined {
   if (typeof query !== "string" || !query.trim()) return undefined;
   const q = query.trim().toLowerCase();
@@ -325,13 +314,6 @@ function findByName<T>(items: T[], getName: (item: T) => string, query: unknown)
   );
 }
 
-// ===========================================================================
-// Petits composants réutilisables
-// ===========================================================================
-
-// Micro-interaction "count-up" inspirée du système d'origine : les valeurs
-// numériques des cartes d'accueil s'animent depuis 0 plutôt que de
-// s'afficher statiquement. Respecte prefers-reduced-motion.
 function useCountUp(target: number, durationMs = 900): number {
   const [display, setDisplay] = useState(0);
   useEffect(() => {
@@ -379,9 +361,6 @@ function InfoCard({
   );
 }
 
-// Etat vide illustré (icône colorée + titre + indice), pour remplacer un
-// simple texte gris sur les listes principales — plus chaleureux, et
-// l'occasion de varier les couleurs (chaque section a sa propre teinte).
 function EmptyState({
   icon: Icon,
   tone,
@@ -423,9 +402,6 @@ function Modal({
   );
 }
 
-// Liens "Me contacter" : affichés dans Paramètres. Icônes de marque réelles
-// (react-icons/si) sur un badge aux couleurs du thème — juste l'icône,
-// aucun numéro ni identifiant affiché à l'écran.
 const CONTACT_LINKS = [
   { label: "WhatsApp", href: "https://wa.me/261383089721", icon: SiWhatsapp, tone: "primary" as const },
   { label: "X", href: "https://x.com/AzhellZettour", icon: SiX, tone: "accent" as const },
@@ -455,10 +431,6 @@ function ContactLinks() {
     </div>
   );
 }
-
-// ===========================================================================
-// Recherche globale (raccourci clavier "/")
-// ===========================================================================
 
 function SearchResultRow({ icon, title, onClick }: { icon: ReactNode; title: string; onClick: () => void }) {
   return (
@@ -613,9 +585,6 @@ function GlobalSearchModal({
   );
 }
 
-// Menu déroulant stylé "maison" — remplace les <select> natifs, dont le
-// menu ouvert est rendu par le système d'exploitation et ne peut pas être
-// mis en forme (d'où le look décalé/terne sur mobile).
 function CustomSelect({
   id,
   value,
@@ -701,12 +670,11 @@ type AuthMode = "checking" | "guest" | "account";
 export default function App() {
   const initial = useMemo(() => loadAppData(), []);
 
-  // --- Authentification : compte cloud (D1) ou mode local (invité) ----------
   const [authMode, setAuthMode] = useState<AuthMode>("checking");
   const [authUser, setAuthUser] = useState<AuthUser | null>(null);
   const [cloudAvailable, setCloudAvailable] = useState(true);
 
-  const [user, setUser] = useState<UserProfile>(initial.user); // profil local (mode invité)
+  const [user, setUser] = useState<UserProfile>(initial.user); 
   const [theme, setTheme] = useState<ThemeMode>(initial.theme);
   const [settings, setSettings] = useState<AppSettings>(initial.settings);
   const [section, setSection] = useState<SectionId>("home");
@@ -728,7 +696,6 @@ export default function App() {
   const [goalModal, setGoalModal] = useState<Goal | "new" | null>(null);
   const [notionModal, setNotionModal] = useState<Notion | "new" | null>(null);
 
-  // --- Installation PWA -------------------------------------------------------
   const [installAvailable, setInstallAvailable] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
   const isIOS = useMemo(
@@ -736,8 +703,6 @@ export default function App() {
     []
   );
 
-  // Raccourci clavier "/" pour ouvrir la recherche globale, sauf si
-  // l'utilisateur est déjà en train de taper dans un champ.
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
       if (e.key !== "/") return;
@@ -761,7 +726,6 @@ export default function App() {
     window.addEventListener("bf:install-available", handleAvailable);
     window.addEventListener("bf:install-installed", handleInstalled);
 
-    // L'évènement a pu être capturé avant même le montage de ce composant.
     if (window.__bfGetInstallPrompt?.()) setInstallAvailable(true);
 
     const standaloneQuery = window.matchMedia && window.matchMedia("(display-mode: standalone)");
@@ -788,7 +752,6 @@ export default function App() {
     setInstallAvailable(false);
   }
 
-  // --- Application du thème sur <html data-theme="..."> --------------------
   useEffect(() => {
     const apply = () => {
       const prefersDark =
@@ -804,7 +767,6 @@ export default function App() {
     }
   }, [theme]);
 
-  // --- Persistance locale : sert de cache et de mode de secours -------------
   useEffect(() => saveUser(user), [user]);
   useEffect(() => saveTheme(theme), [theme]);
   useEffect(() => saveSettings(settings), [settings]);
@@ -817,7 +779,6 @@ export default function App() {
   useEffect(() => saveStudySessions(studySessions), [studySessions]);
   useEffect(() => saveFavoriteMethods(favoriteMethodIds), [favoriteMethodIds]);
 
-  // --- Vérifie si une session compte existe déjà (cookie) au chargement -----
   useEffect(() => {
     let cancelled = false;
     apiMe()
@@ -841,7 +802,6 @@ export default function App() {
     };
   }, []);
 
-  // --- Charge les données depuis D1 une fois connecté par compte ------------
   useEffect(() => {
     if (authMode !== "account") return;
     let cancelled = false;
@@ -890,9 +850,6 @@ export default function App() {
       setToasts((prev) => prev.filter((t) => t.id !== id));
     }, 3200);
   }
-
-  // --- Fonctions de mutation : mettent à jour l'état local ET, si un compte
-  //     est actif, synchronisent avec D1 en tâche de fond (best-effort). -----
 
   function persistSubject(s: Subject) {
     setSubjects((prev) => {
@@ -1026,10 +983,6 @@ export default function App() {
     setFavoriteMethodIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
   }
 
-  // --- Contexte compact pour l'assistant IA -----------------------------------
-  // Résumé court et à jour de l'espace de l'utilisateur, jamais la base
-  // complète : quelques compteurs + une poignée d'éléments les plus
-  // pertinents (échéances proches, objectifs actifs, notions à revoir).
   function buildAiContext(): string {
     const lines: string[] = [];
     lines.push(`Prénom : ${displayName}.`);
@@ -1078,7 +1031,6 @@ export default function App() {
     return lines.join("\n").slice(0, 1500);
   }
 
-  // --- Actions proposées par l'IA : description lisible, résolution, exécution ---
 
   function describeAiAction(entity: AiActionEntity, operation: AiActionOperation, args: Record<string, unknown>): string {
     const name = typeof args.name === "string" ? args.name : typeof args.title === "string" ? args.title : "";
@@ -1107,9 +1059,6 @@ export default function App() {
     return `Modifier ${entityLabel[entity]} « ${name || "?"} »`;
   }
 
-  // Résout l'action (retrouve l'élément visé par son nom) et l'exécute via
-  // les mêmes fonctions que celles utilisées par les formulaires manuels —
-  // aucun chemin de code séparé, donc aucun risque d'incohérence.
   function resolveAndExecuteAiAction(action: AiAction): string {
     const { entity, operation, args } = action;
     const nameArg = typeof args.name === "string" ? args.name : typeof args.title === "string" ? args.title : "";
@@ -1274,10 +1223,6 @@ export default function App() {
     );
   }
 
-  // Filet de sécurité côté app : si l'IA propose malgré tout de créer un
-  // élément qui existe déjà (même nom), on ne laisse pas la carte proposer
-  // une confirmation — on l'affiche directement comme ignorée, avec
-  // l'explication. Ne dépend jamais du bon respect du prompt par le modèle.
   function findExistingDuplicate(raw: RawAiAction): string | null {
     if (raw.operation !== "create") return null;
     const name = typeof raw.args.name === "string" ? raw.args.name : typeof raw.args.title === "string" ? raw.args.title : "";
@@ -1340,7 +1285,6 @@ export default function App() {
     }
   }
 
-  // --- Ecran de chargement (vérification de session) -------------------------
   if (authMode === "checking") {
     return (
       <div className="bf-auth">
@@ -1359,7 +1303,6 @@ export default function App() {
 
   const isLoggedIn = authMode === "account" || (authMode === "guest" && user.loggedIn);
 
-  // --- Ecran de connexion / inscription / mode local -------------------------
   if (!isLoggedIn) {
     return (
       <AuthScreen
@@ -3619,7 +3562,8 @@ function SettingsSection({
           <h2>Me contacter</h2>
         </div>
         <p style={{ fontSize: 13.5, color: "var(--bf-text-muted)", marginBottom: 14 }}>
-          Benkyō Flow est un projet personnel — n'hésite pas à me suivre ou à me faire signe.
+          Benkyō Flow est un projet personnel en constante évolution. 
+          Tes retours peuvent contribuer à la suite.
         </p>
         <ContactLinks />
       </div>
