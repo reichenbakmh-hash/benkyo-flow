@@ -202,6 +202,64 @@ export function loadAppData(): AppData {
 export function saveUser(user: UserProfile) {
   safeSet(KEYS.user, user);
 }
+
+// Les matières, devoirs, objectifs, notions et sessions doivent rester
+// propres à chaque compte sur un même appareil, exactement comme
+// l'historique et les réglages ci-dessous : sans ça, sur un appareil
+// partagé, la personne suivante qui se connecte (ou passe en invité)
+// hériterait un instant des données du compte précédent via le cache
+// local. Même principe : clé dédiée par utilisateur, clé générique en
+// mode invité (un seul appareil = un seul profil local sans compte).
+function subjectsKeyFor(userId: string | null): string {
+  return userId ? `${STORAGE_PREFIX}subjects:${userId}` : KEYS.subjects;
+}
+function homeworkKeyFor(userId: string | null): string {
+  return userId ? `${STORAGE_PREFIX}homework:${userId}` : KEYS.homework;
+}
+function goalsKeyFor(userId: string | null): string {
+  return userId ? `${STORAGE_PREFIX}goals:${userId}` : KEYS.goals;
+}
+function notionsKeyFor(userId: string | null): string {
+  return userId ? `${STORAGE_PREFIX}notions:${userId}` : KEYS.notions;
+}
+function studySessionsKeyFor(userId: string | null): string {
+  return userId ? `${STORAGE_PREFIX}study-sessions:${userId}` : KEYS.studySessions;
+}
+
+export function loadSubjectsFor(userId: string | null): Subject[] {
+  return safeGet<Subject[]>(subjectsKeyFor(userId), starterSubjects);
+}
+export function saveSubjectsFor(userId: string | null, subjects: Subject[]) {
+  safeSet(subjectsKeyFor(userId), subjects);
+}
+export function loadHomeworkFor(userId: string | null): Homework[] {
+  return safeGet<Homework[]>(homeworkKeyFor(userId), []);
+}
+export function saveHomeworkFor(userId: string | null, homework: Homework[]) {
+  safeSet(homeworkKeyFor(userId), homework);
+}
+export function loadGoalsFor(userId: string | null): Goal[] {
+  return safeGet<Goal[]>(goalsKeyFor(userId), []);
+}
+export function saveGoalsFor(userId: string | null, goals: Goal[]) {
+  safeSet(goalsKeyFor(userId), goals);
+}
+export function loadNotionsFor(userId: string | null): Notion[] {
+  return safeGet<Notion[]>(notionsKeyFor(userId), []);
+}
+export function saveNotionsFor(userId: string | null, notions: Notion[]) {
+  safeSet(notionsKeyFor(userId), notions);
+}
+export function loadStudySessionsFor(userId: string | null): StudySession[] {
+  return safeGet<StudySession[]>(studySessionsKeyFor(userId), []);
+}
+export function saveStudySessionsFor(userId: string | null, sessions: StudySession[]) {
+  safeSet(studySessionsKeyFor(userId), sessions);
+}
+
+// Conservées pour compatibilité (mode invité / anciennes données locales
+// non liées à un compte) — utilisées uniquement via les wrappers *_For
+// ci-dessus désormais, jamais directement pour un utilisateur connecté.
 export function saveSubjects(subjects: Subject[]) {
   safeSet(KEYS.subjects, subjects);
 }
