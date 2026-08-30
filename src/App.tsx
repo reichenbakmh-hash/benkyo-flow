@@ -171,6 +171,7 @@ import {
   Bell,
   BellOff,
   RefreshCcw,
+  Smartphone,
 } from "lucide-react";
 import { SiWhatsapp, SiX, SiDiscord } from "react-icons/si";
 import type { LucideIcon } from "lucide-react";
@@ -191,7 +192,8 @@ type SectionId =
   | "progress"
   | "history"
   | "assistant"
-  | "settings";
+  | "settings"
+  | "about";
 
 const SECTIONS: { id: SectionId; label: string; icon: LucideIcon }[] = [
   { id: "home", label: "Accueil", icon: Home },
@@ -206,6 +208,7 @@ const SECTIONS: { id: SectionId; label: string; icon: LucideIcon }[] = [
   { id: "history", label: "Historique", icon: HistoryIcon },
   { id: "assistant", label: "Benkyō IA", icon: MessageCircle },
   { id: "settings", label: "Paramètres", icon: SettingsIcon },
+  { id: "about", label: "À propos", icon: Compass },
 ];
 
 const SUBJECT_COLORS: SubjectColor[] = [
@@ -1968,6 +1971,8 @@ export default function App() {
             }
           />
         )}
+
+        {section === "about" && <AboutSection />}
       </div>
 
       {subjectModal && (
@@ -4878,10 +4883,224 @@ function SettingsSection({
                 }
               }}
             >
-              Réinitialiser les données
+                Réinitialiser les données
             </button>
           </>
         )}
+      </div>
+    </>
+  );
+}
+
+// ===========================================================================
+// Section : À propos
+// ===========================================================================
+//
+// Le centre de gravité visuel de cette section n'est pas une pile de blocs
+// à émoji (trop générique, se démode mal), mais une seule pièce animée :
+// une ligne de "flux" en SVG qui relie 学ぶ → 整える → 進む, avec un motif
+// de tirets qui défile en continu (le "courant") et quelques particules qui
+// voyagent dessus. C'est littéralement une représentation du mot "Flow" du
+// nom de l'app plutôt qu'une décoration arbitraire — et ça coûte zéro image
+// externe, zéro dépendance : juste du SVG + CSS, cohérent avec les
+// variables de thème existantes (clair/sombre inclus).
+
+const ABOUT_FLOW_STEPS = [
+  { kanji: "学", romaji: "Manabu", label: "Apprendre", tone: "cyan" as const, cx: 60 },
+  { kanji: "整", romaji: "Totonoeru", label: "Organiser", tone: "violet" as const, cx: 300 },
+  { kanji: "進", romaji: "Susumu", label: "Avancer", tone: "accent" as const, cx: 540 },
+];
+
+function AboutFlowHero() {
+  return (
+    <div className="bf-about-hero">
+      <div className="bf-about-hero__kanji">
+        <BrushUnderline>学ぶ</BrushUnderline>
+        <span className="bf-about-hero__dot">・</span>
+        <BrushUnderline>整える</BrushUnderline>
+        <span className="bf-about-hero__dot">・</span>
+        <BrushUnderline>進む</BrushUnderline>
+      </div>
+      <p className="bf-about-hero__sub">Apprendre &nbsp;•&nbsp; Organiser &nbsp;•&nbsp; Avancer</p>
+
+      <svg
+        className="bf-about-flow"
+        viewBox="0 0 600 170"
+        xmlns="http://www.w3.org/2000/svg"
+        role="img"
+        aria-label="Schéma illustrant le flux apprendre, organiser, avancer"
+      >
+        <defs>
+          <linearGradient id="bf-flow-gradient" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stopColor="var(--bf-cyan)" />
+            <stop offset="50%" stopColor="var(--bf-violet)" />
+            <stop offset="100%" stopColor="var(--bf-accent)" />
+          </linearGradient>
+        </defs>
+
+        {/* Trait de fond, discret, pour donner une assise à la ligne animée */}
+        <path
+          d="M60,90 C 160,30 220,30 300,90 S 460,150 540,90"
+          className="bf-about-flow__base"
+          fill="none"
+          pathLength={1}
+        />
+        {/* La ligne de "courant" : dashes qui défilent en boucle */}
+        <path
+          d="M60,90 C 160,30 220,30 300,90 S 460,150 540,90"
+          className="bf-about-flow__stream"
+          fill="none"
+          stroke="url(#bf-flow-gradient)"
+          pathLength={1}
+        />
+
+        {/* Particules qui voyagent le long du courant, décalées dans le temps */}
+        {[0, 1, 2].map((i) => (
+          <circle key={i} r="3.2" className={`bf-about-flow__spark spark-${i}`}>
+            <animateMotion
+              dur="4.5s"
+              begin={`${i * 1.5}s`}
+              repeatCount="indefinite"
+              path="M60,90 C 160,30 220,30 300,90 S 460,150 540,90"
+            />
+          </circle>
+        ))}
+
+        {ABOUT_FLOW_STEPS.map((step) => (
+          <g key={step.label} transform={`translate(${step.cx}, 90)`} className={`bf-about-flow__node tone-${step.tone}`}>
+            <circle r="27" className="bf-about-flow__node-ring" />
+            <text textAnchor="middle" dominantBaseline="central" dy="1" className="bf-about-flow__node-kanji">
+              {step.kanji}
+            </text>
+            <text textAnchor="middle" y="48" className="bf-about-flow__node-label">
+              {step.label}
+            </text>
+          </g>
+        ))}
+      </svg>
+    </div>
+  );
+}
+
+// Petit soulignement façon coup de pinceau, dessiné au montage plutôt que
+// simplement affiché — sert la même idée que le flux ci-dessus (mouvement
+// qui a un sens), sans jamais recourir à un émoji.
+function BrushUnderline({ children }: { children: string }) {
+  return (
+    <span className="bf-about-brush">
+      {children}
+      <svg viewBox="0 0 100 14" preserveAspectRatio="none" className="bf-about-brush__svg" aria-hidden="true">
+        <path d="M2,7 C 20,2 35,11 50,6 S 80,2 98,7" pathLength={1} />
+      </svg>
+    </span>
+  );
+}
+
+function AboutFeature({
+  icon: Icon,
+  tone,
+  title,
+  children,
+}: {
+  icon: LucideIcon;
+  tone: "primary" | "accent" | "success" | "info" | "violet";
+  title: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className="bf-about-feature">
+      <div className={`bf-about-feature__icon tone-${tone}`}>
+        <Icon size={20} strokeWidth={2.1} />
+      </div>
+      <div>
+        <h3>{title}</h3>
+        <p>{children}</p>
+      </div>
+    </div>
+  );
+}
+
+function AboutSection() {
+  return (
+    <>
+      <div className="bf-page-heading">
+        <h1>À propos de Benkyō Flow</h1>
+        <p>D'où vient l'application, et ce qu'elle essaie de faire.</p>
+      </div>
+
+      <div className="bf-panel bf-about-panel">
+        <AboutFlowHero />
+
+        <div className="bf-about-intro">
+          <p>
+            Apprendre quelque chose de nouveau, c'est rarement aussi simple que « commencer et
+            continuer ». Il faut se souvenir de ce qu'on a appris, savoir quoi revoir, ne pas oublier ce
+            qu'on doit faire, trouver du temps pour travailler et, parfois, simplement savoir par où
+            commencer.
+          </p>
+          <p>
+            <strong>Benkyō Flow</strong> est né de cette idée : rendre tout cela plus simple. Que vous
+            appreniez une langue, prépariez un examen, développiez une nouvelle compétence, suiviez une
+            formation ou appreniez simplement par curiosité, Benkyō Flow vous aide à donner une structure
+            à votre apprentissage.
+          </p>
+        </div>
+      </div>
+
+      <div className="bf-panel">
+        <div className="bf-panel__header">
+          <h2>Votre apprentissage, au même endroit</h2>
+        </div>
+        <p className="bf-about-lead">
+          Avec Benkyō Flow, vous pouvez organiser vos matières et notions, suivre vos tâches et
+          échéances, planifier vos révisions, enregistrer vos sessions d'apprentissage et garder un œil
+          sur votre progression. Benkyō IA peut également vous aider à organiser votre espace : créer ou
+          ajouter des matières, notions et devoirs à partir de vos demandes, mais aussi modifier ou
+          supprimer des éléments lorsque vous en avez besoin.
+        </p>
+        <p className="bf-about-lead bf-about-lead--emphasis">
+          L'idée n'est pas de vous dire comment apprendre. C'est de vous aider à ne pas perdre le fil.
+        </p>
+      </div>
+
+      <div className="bf-about-features">
+        <AboutFeature icon={Sprout} tone="success" title="Votre apprentissage, au même endroit">
+          Matières, notions, devoirs, sessions et progression réunis dans un seul espace, plutôt qu'éparpillés
+          entre plusieurs outils.
+        </AboutFeature>
+        <AboutFeature icon={Brain} tone="primary" title="Apprendre, puis revenir">
+          Une notion apprise aujourd'hui peut facilement disparaître demain. Benkyō Flow planifie vos
+          révisions pour revenir au bon moment sur ce que vous avez appris — parce que la mémoire humaine
+          a visiblement décidé de ne pas être livrée avec une fonction « sauvegarde automatique ».
+        </AboutFeature>
+        <AboutFeature icon={Timer} tone="accent" title="Suivre son temps">
+          Le temps consacré à l'apprentissage peut parfois passer inaperçu. Les sessions d'étude
+          enregistrent le temps passé à apprendre et gardent une trace de vos habitudes au fil du temps.
+        </AboutFeature>
+        <AboutFeature icon={CalendarDays} tone="info" title="Savoir quoi faire">
+          Entre les devoirs, les révisions et les sessions prévues, Benkyō Flow les organise dans le temps
+          pour savoir ce qui est prévu et ce qui reste à faire. Moins de « qu'est-ce que je devais faire
+          déjà ? ». Plus de « voilà ce que je fais maintenant ».
+        </AboutFeature>
+        <AboutFeature icon={Smartphone} tone="violet" title="Toujours à portée de main">
+          Benkyō Flow est pensé pour être utilisé simplement sur différents appareils, et installé comme
+          une application.
+        </AboutFeature>
+      </div>
+
+      <div className="bf-about-quote">
+        <p className="bf-about-quote__title">Pourquoi « Benkyō Flow » ?</p>
+        <p>
+          <strong>Benkyō</strong> (勉強) signifie étude, apprentissage en japonais. <strong>Flow</strong>{" "}
+          évoque le mouvement, la continuité, et cette sensation de progresser sans perdre son rythme.
+        </p>
+        <p className="bf-about-quote__motto">Apprendre. Organiser. Avancer.</p>
+        <p>
+          Pas pour apprendre plus vite à tout prix. Pas pour transformer chaque journée en compétition.
+          Simplement pour rendre le chemin un peu plus clair.
+        </p>
+        <p className="bf-about-quote__kanji-line">学ぶ・整える・進む</p>
+        <p className="bf-about-quote__brand">Benkyō Flow</p>
       </div>
     </>
   );
