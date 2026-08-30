@@ -5,8 +5,14 @@ import {
   loadAppData,
   saveUser,
   saveSubjects,
+  saveSubjectsFor,
+  loadSubjectsFor,
   saveHomework,
+  saveHomeworkFor,
+  loadHomeworkFor,
   saveGoals,
+  saveGoalsFor,
+  loadGoalsFor,
   loadHistoryFor,
   saveHistoryFor,
   loadSettingsFor,
@@ -35,11 +41,15 @@ import {
   apiChatSend,
   loadNotions,
   saveNotions,
+  saveNotionsFor,
+  loadNotionsFor,
   apiListNotions,
   apiUpsertNotion,
   apiDeleteNotion,
   loadStudySessions,
   saveStudySessions,
+  saveStudySessionsFor,
+  loadStudySessionsFor,
   apiListStudySessions,
   apiUpsertStudySession,
   apiDeleteStudySession,
@@ -884,17 +894,37 @@ export default function App() {
       );
     }
   }, [settings, authMode, authUser?.id]);
-  useEffect(() => saveSubjects(subjects), [subjects]);
-  useEffect(() => saveHomework(homework), [homework]);
-  useEffect(() => saveGoals(goals), [goals]);
+  useEffect(() => saveSubjectsFor(authMode === "account" ? authUser?.id ?? null : null, subjects), [
+    subjects,
+    authMode,
+    authUser?.id,
+  ]);
+  useEffect(() => saveHomeworkFor(authMode === "account" ? authUser?.id ?? null : null, homework), [
+    homework,
+    authMode,
+    authUser?.id,
+  ]);
+  useEffect(() => saveGoalsFor(authMode === "account" ? authUser?.id ?? null : null, goals), [
+    goals,
+    authMode,
+    authUser?.id,
+  ]);
   useEffect(() => {
     saveHistoryFor(authMode === "account" ? authUser?.id ?? null : null, history);
   }, [history, authMode, authUser?.id]);
   useEffect(() => {
     saveChatHistoryFor(authMode === "account" ? authUser?.id ?? null : null, chatMessages);
   }, [chatMessages, authMode, authUser?.id]);
-  useEffect(() => saveNotions(notions), [notions]);
-  useEffect(() => saveStudySessions(studySessions), [studySessions]);
+  useEffect(() => saveNotionsFor(authMode === "account" ? authUser?.id ?? null : null, notions), [
+    notions,
+    authMode,
+    authUser?.id,
+  ]);
+  useEffect(() => saveStudySessionsFor(authMode === "account" ? authUser?.id ?? null : null, studySessions), [
+    studySessions,
+    authMode,
+    authUser?.id,
+  ]);
   useEffect(() => {
     saveFavoriteMethodsFor(authMode === "account" ? authUser?.id ?? null : null, favoriteMethodIds);
   }, [favoriteMethodIds, authMode, authUser?.id]);
@@ -1509,11 +1539,11 @@ export default function App() {
       await apiLogout();
       setAuthUser(null);
       setAuthMode("guest");
-      setSubjects(starterSubjects);
-      setHomework([]);
-      setGoals([]);
-      setNotions([]);
-      setStudySessions([]);
+      setSubjects(loadSubjectsFor(null));
+      setHomework(loadHomeworkFor(null));
+      setGoals(loadGoalsFor(null));
+      setNotions(loadNotionsFor(null));
+      setStudySessions(loadStudySessionsFor(null));
       setHistory(loadHistoryFor(null));
       setChatMessages(loadChatHistoryFor(null));
       setFavoriteMethodIds(loadFavoriteMethodsFor(null));

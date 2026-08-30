@@ -95,6 +95,13 @@ export interface AppSettings {
   customAccentColor: string | null; // couleur d'accent personnalisée (hex)
   themePaletteId: string | null; // id d'une ambiance complète (voir fullPalettes) — remplace fond/texte/surfaces
   radiusStyle: RadiusStyle; // arrondi global de l'interface
+  // --- Minuteur Pomodoro (voir lib/pomodoro.ts) -----------------------------
+  pomodoroWorkMinutes: number;
+  pomodoroBreakMinutes: number;
+  pomodoroLongBreakMinutes: number;
+  pomodoroSessionsBeforeLongBreak: number;
+  // --- Notifications locales (voir lib/notifications.ts) --------------------
+  notificationsEnabled: boolean; // préférence utilisateur ; la permission navigateur reste distincte
 }
 
 export interface AppData {
@@ -131,6 +138,11 @@ export const defaultSettings: AppSettings = {
   customAccentColor: null,
   themePaletteId: null,
   radiusStyle: "default",
+  pomodoroWorkMinutes: 25,
+  pomodoroBreakMinutes: 5,
+  pomodoroLongBreakMinutes: 15,
+  pomodoroSessionsBeforeLongBreak: 4,
+  notificationsEnabled: false,
 };
 
 export const defaultUser: UserProfile = {
@@ -190,6 +202,64 @@ export function loadAppData(): AppData {
 export function saveUser(user: UserProfile) {
   safeSet(KEYS.user, user);
 }
+
+// Les matières, devoirs, objectifs, notions et sessions doivent rester
+// propres à chaque compte sur un même appareil, exactement comme
+// l'historique et les réglages ci-dessous : sans ça, sur un appareil
+// partagé, la personne suivante qui se connecte (ou passe en invité)
+// hériterait un instant des données du compte précédent via le cache
+// local. Même principe : clé dédiée par utilisateur, clé générique en
+// mode invité (un seul appareil = un seul profil local sans compte).
+function subjectsKeyFor(userId: string | null): string {
+  return userId ? `${STORAGE_PREFIX}subjects:${userId}` : KEYS.subjects;
+}
+function homeworkKeyFor(userId: string | null): string {
+  return userId ? `${STORAGE_PREFIX}homework:${userId}` : KEYS.homework;
+}
+function goalsKeyFor(userId: string | null): string {
+  return userId ? `${STORAGE_PREFIX}goals:${userId}` : KEYS.goals;
+}
+function notionsKeyFor(userId: string | null): string {
+  return userId ? `${STORAGE_PREFIX}notions:${userId}` : KEYS.notions;
+}
+function studySessionsKeyFor(userId: string | null): string {
+  return userId ? `${STORAGE_PREFIX}study-sessions:${userId}` : KEYS.studySessions;
+}
+
+export function loadSubjectsFor(userId: string | null): Subject[] {
+  return safeGet<Subject[]>(subjectsKeyFor(userId), starterSubjects);
+}
+export function saveSubjectsFor(userId: string | null, subjects: Subject[]) {
+  safeSet(subjectsKeyFor(userId), subjects);
+}
+export function loadHomeworkFor(userId: string | null): Homework[] {
+  return safeGet<Homework[]>(homeworkKeyFor(userId), []);
+}
+export function saveHomeworkFor(userId: string | null, homework: Homework[]) {
+  safeSet(homeworkKeyFor(userId), homework);
+}
+export function loadGoalsFor(userId: string | null): Goal[] {
+  return safeGet<Goal[]>(goalsKeyFor(userId), []);
+}
+export function saveGoalsFor(userId: string | null, goals: Goal[]) {
+  safeSet(goalsKeyFor(userId), goals);
+}
+export function loadNotionsFor(userId: string | null): Notion[] {
+  return safeGet<Notion[]>(notionsKeyFor(userId), []);
+}
+export function saveNotionsFor(userId: string | null, notions: Notion[]) {
+  safeSet(notionsKeyFor(userId), notions);
+}
+export function loadStudySessionsFor(userId: string | null): StudySession[] {
+  return safeGet<StudySession[]>(studySessionsKeyFor(userId), []);
+}
+export function saveStudySessionsFor(userId: string | null, sessions: StudySession[]) {
+  safeSet(studySessionsKeyFor(userId), sessions);
+}
+
+// Conservées pour compatibilité (mode invité / anciennes données locales
+// non liées à un compte) — utilisées uniquement via les wrappers *_For
+// ci-dessus désormais, jamais directement pour un utilisateur connecté.
 export function saveSubjects(subjects: Subject[]) {
   safeSet(KEYS.subjects, subjects);
 }
@@ -222,6 +292,30 @@ export function saveSettings(settings: AppSettings): boolean {
 }
 export function saveTheme(theme: ThemeMode) {
   safeSet(KEYS.theme, theme);
+}
+
+// Les réglages d'apparence (image de fond, couleurs, ambiance, thème…) sont
+// personnels : ils doivent rester propres à chaque compte sur un même
+// appareil, comme l'historique et le chat. Même principe de clé dédiée par
+// utilisateur, mode invité sur la clé générique.
+function settingsKeyFor(userId: string | null): string {
+  return userId ? `${STORAGE_PREFIX}settings:${userId}` : KEYS.settings;
+}
+function themeKeyFor(userId: string | null): string {
+  return userId ? `${STORAGE_PREFIX}theme:${userId}` : KEYS.theme;
+}
+
+export function loadSettingsFor(userId: string | null): AppSettings {
+  return { ...defaultSettings, ...safeGet<Partial<AppSettings>>(settingsKeyFor(userId), defaultSettings) };
+}
+export function saveSettingsFor(userId: string | null, settings: AppSettings): boolean {
+  return safeSet(settingsKeyFor(userId), settings);
+}
+export function loadThemeFor(userId: string | null): ThemeMode {
+  return safeGet<ThemeMode>(themeKeyFor(userId), "system");
+}
+export function saveThemeFor(userId: string | null, theme: ThemeMode) {
+  safeSet(themeKeyFor(userId), theme);
 }
 
 export function loadNotions(): Notion[] {
@@ -685,6 +779,20 @@ export async function apiResetPassword(token: string, password: string): Promise
   await apiRequest("/api/auth/reset-password", {
     method: "POST",
     body: JSON.stringify({ token, password }),
+  });
+}
+
+// Page admin : génère un code de récupération à usage unique pour un
+// compte donné, à envoyer manuellement (WhatsApp) après avoir vérifié
+// l'identité de la personne. Protégé par le mot de passe admin défini côté
+// serveur (secret ADMIN_ACCESS_CODE).
+export async function apiAdminGenerateCode(
+  adminAccessCode: string,
+  email: string
+): Promise<{ code: string; expiresInMinutes: number }> {
+  return apiRequest<{ code: string; expiresInMinutes: number }>("/api/auth/admin-generate-code", {
+    method: "POST",
+    body: JSON.stringify({ adminAccessCode, email }),
   });
 }
 
