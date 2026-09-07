@@ -7,12 +7,6 @@
     <meta name="description" content="Benkyō Flow — l'espace d'organisation scolaire des lycéens et étudiants." />
     <title>Benkyō Flow</title>
 
-    <!--
-      Police "Outfit" (géométrique, énergique, très lisible) via Google
-      Fonts. Chargement non bloquant : si hors-ligne ou lent, la pile de
-      secours système (déjà définie dans index.css) prend le relais sans
-      casser l'affichage.
-    -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -24,16 +18,15 @@
     <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
     <link rel="apple-touch-icon" href="/icons/icon-192.png" />
 
-    <!--
-      Anti-flash de thème : on lit la préférence AVANT que React ne monte,
-      pour éviter un flash clair->sombre au chargement.
-      Ce script est volontairement autonome (aucune dépendance externe).
-    -->
     <script>
       (function () {
         try {
-          var stored = localStorage.getItem("benkyo-flow:theme");
-          var mode = stored || "system";
+          var lastUserId = localStorage.getItem("benkyo-flow:last-user-id");
+          var themeKey = lastUserId
+            ? "benkyo-flow:theme:" + lastUserId
+            : "benkyo-flow:theme";
+          var stored = localStorage.getItem(themeKey);
+          var mode = stored ? JSON.parse(stored) : "system";
           var isDark =
             mode === "dark" ||
             (mode === "system" &&
