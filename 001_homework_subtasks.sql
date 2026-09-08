@@ -1,0 +1,1 @@
+ALTER TABLE homework ADD COLUMN subtasks TEXT NOT NULL DEFAULT '[]';
